@@ -188,11 +188,11 @@ socket.on('top100', (top100)=>{
     var tr = table.insertRow(-1); 
     trow = table.insertRow(-1); 
     var name = trow.insertCell(-1); 
-    name.innerHTML = "Name"; 
+    name.innerHTML = "Tên"; 
     var point = trow.insertCell(-1); 
-    point.innerHTML = "Point"; 
+    point.innerHTML = "Điểm"; 
     var rank = trow.insertCell(-1); 
-    rank.innerHTML = "Rank"; 
+    rank.innerHTML = "Hạng"; 
     // Adding the data to the table 
     for (var i = 0; i < top100.length; i++) { 
         // Create a new row 
