@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
     }).catch((err) => {
         throw new Error(err)
     })
-    
+
     // handle when user emit login
     socket.on('login', (username) => {
         // insert to mongodb
@@ -49,34 +49,40 @@ io.on('connection', (socket) => {
         })
     })
 
-
     // when user emit find match
     // find available room, if not exist, create join this user in new room 
     // emit back to client state: 1 (mean to wait) or 0 (mean to play)
     socket.on('find-match', () => {
         // find available room in list room
-        let roomID = findRoomAvailable()
+        let roomInformation = findRoomAvailable()
         // if have available room    
-        if (roomID != null) {
+        if (roomInformation != null) {
             // update number of player of room
-            ListRooms[roomID] = 2
-            socket.join(roomID)
-            io.to(roomID).emit('0')
+            console.log('found room')
+            console.log(roomInformation)
+            socket.join(roomInformation.roomID)
+            roomInformation[socket.id] = 0
+            io.to(roomInformation.roomID).emit('join-complete', '2')
+            console.log(socket.rooms)
         }
-        // If cannot find any available room
-        else {
+        else {        // If cannot find any available room
             roomID = `room${countIdRoom++}`
-            ListRooms[roomID] = 1
+            console.log('roomid is null')
             socket.join(roomID)
-            io.to(roomID).emit('1')
+            let newRoom = {
+                "roomid": socket.rooms[0]
+            }
+            newRoom[socket.id] = 0
+            ListRooms.push(newRoom)
+            io.to(roomID).emit('join-complete', '1')
+            console.log(socket.rooms)
         }
     })
-
-
     // in game handle
     // user emit chosen, compare and return point for user
     socket.on('result', (userChosen) => {
-        // userid,roomid, and chosen 
+        // userid, and chosen 
+        // compare
         // then update 
         console.log(chosen);
     })
@@ -94,13 +100,16 @@ io.on('connection', (socket) => {
 
 });
 function findRoomAvailable() {
-    for (var key in ListRooms)
-        if (ListRooms[key] < 2)
-            return key;
+    console.log('find room function')
+    for (var room in ListRooms)
+        if (Object.keys(room).length < 3)
+            return room;
     return null
 }
+
 app.get('/', (req, res) => {
     console.log('get request')
+    console.log(ListRooms)
     res.json(
         'Backend BE4'
     )
