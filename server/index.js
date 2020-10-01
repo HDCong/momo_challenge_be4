@@ -54,30 +54,41 @@ io.on('connection', (socket) => {
     // emit back to client state: 1 (mean to wait) or 0 (mean to play)
     socket.on('find-match', () => {
         // find available room in list room
-        let roomInformation = findRoomAvailable()
+        var roomIndex = findRoomAvailable()
+
         // if have available room    
-        if (roomInformation != null) {
+        if (roomIndex >= 0) {
             // update number of player of room
             console.log('found room')
+            roomInformation = ListRooms[roomIndex]
             console.log(roomInformation)
             socket.join(roomInformation.roomID)
-            roomInformation[socket.id] = 0
+            let player2 = {
+                "score": 0,
+                "currentChoice": null,
+            }
+            roomInformation[socket.id] = player2
             io.to(roomInformation.roomID).emit('join-complete', '2')
-            console.log(socket.rooms)
         }
         else {        // If cannot find any available room
             roomID = `room${countIdRoom++}`
             console.log('roomid is null')
             socket.join(roomID)
+            var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
             let newRoom = {
-                "roomid": socket.rooms[0]
+                "roomID": rooms[1]
             }
-            newRoom[socket.id] = 0
+            let player1 = {
+                "score": 0,
+                "currentChoice": null,
+            }
+            newRoom[socket.id] = player1
+            console.log('new room nek', newRoom)
             ListRooms.push(newRoom)
             io.to(roomID).emit('join-complete', '1')
-            console.log(socket.rooms)
         }
     })
+    
     // in game handle
     // user emit chosen, compare and return point for user
     socket.on('result', (userChosen) => {
@@ -101,18 +112,24 @@ io.on('connection', (socket) => {
 });
 function findRoomAvailable() {
     console.log('find room function')
-    for (var room in ListRooms)
-        if (Object.keys(room).length < 3)
-            return room;
-    return null
+    var idx = -1
+    for (let i = 0; i < ListRooms.length; i++) {
+        let item = ListRooms[i]
+        if (Object.keys(item).length < 3) {
+            console.log('return item')
+            console.log(item);
+            idx = i;
+            break;
+        }
+    }
+    return idx
 }
 
 app.get('/', (req, res) => {
     console.log('get request')
-    console.log(ListRooms)
+    console.log()
     res.json(
-        'Backend BE4'
-    )
+        ListRooms)
 });
 
 
