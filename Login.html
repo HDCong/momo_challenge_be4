@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<head>
+    <title>Đăng nhập vào website</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./LoginCss.css" rel="stylesheet"/>
+    <script src="http://localhost:8888/socket.io/socket.io.js"></script>
+    <script src="./connect.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container" style="text-align: center;">
+            TRÒ CHƠI OẲN TÙ TÌ
+        </div>
+        <button id="myBtn">Bảng xếp hạng.</button>
+    </header>
+<main>
+    <div id="myModal" class="modal" style="display:none">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <table id="top100_table">
+                <tr>
+                    <th>Name</th>
+                    <th>Point</th>
+                    <th>Rank</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="container">
+        <div class="login-form" id="login" >
+            <h1>Login</h1>
+            <div class="input-box">
+                <i></i>
+                <input id="input_name" type="text" placeholder="name" th:field="*{ten}"/>
+            </div>
+
+            <div class="btn-box">
+                <button id= "submit_btn" onclick="sendLoginRequest()"/>
+                Submit
+                </button>
+            </div>
+            
+        </div>
+        
+        <!-- ------------------------------------------------------------------------------------------------------------------------------ -->
+        <div id="waiting" style="display: none">
+            <ul style="list-style-type: none;">
+                <li style="display: inline-block; "><a for="User1" style="width: auto; text-decoration: none; display: block; 
+                        size: 10rem; height: 23.3; color: #009999;">
+                        <b>TÊN:</b></a></li>
+                <li  style="display: inline-block;"><a id="user_name"
+                        style="width: 100px; text-decoration: none; display: block;">
+                        </a></li>
+            </ul>
+            <ul style="list-style-type: none; ">
+                <li style="display: inline-block;"><a for="User1" style="width: auto; text-decoration: none; display: block;
+                            size: 10rem; height: 23.3; color: #009999;">
+                        <b>ĐIỂM SỐ:</b></a></li>
+                <li style="display: inline-block;"><a id = "user_cur_point"
+                        style="width: 100px; text-decoration: none; display: block;">
+                        </a></li>
+            </ul>
+            <ul style="list-style-type: none; ">
+                <li style="display: inline-block;"><a for="User1" style="width: auto; text-decoration: none; display: block;
+                            size: 10rem; height: 23.3; color: #009999;">
+                        <b>SỐ LƯỢT CÒN LẠI:</b></a></li>
+                <li  style="display: inline-block;"><a id="user_num_of_play"
+                        style="width: 100px; text-decoration: none; display: block;">
+                        </a></li>
+            </ul>
+            <ul style="list-style-type: none; ">
+                <li style="display: inline-block;"><a for="User1" style="width: auto; text-decoration: none; display: block;
+                        size: 10rem; height: 23.3; color: #009999;">
+                        <b>XẾP HẠNG:</b></a></li>
+                <li  style="display: inline-block;"><a id="user_rank"
+                        style="width: 100px; text-decoration: none; display: block;">
+                        </a></li>
+            </ul>
+            <div class="btn-box">
+                <button id= "submit_btn" onclick="sendFindMatch()"/>
+                Match
+                </button>
+            </div>
+        </div>
+        <!-- ------------------------------------------------------------------------------------------------------------------------------ -->
+        <div id="game" style="display: none">
+            <ul style="list-style-type: none;">
+                <li style="display: inline-block;  border-right: 1px solid;">
+                    <div>
+                        <ul style="list-style-type: none; ">
+                            <li style="display: inline-block;"><a for="User1" style="width: 40px; text-decoration: none; display: block;
+                                        size: 10rem; height: 23.3; color: #009999;">
+                                    <b>TÊN:</b></a></li>
+                            <li style="display: inline-block;"><a id = "user_name_game"
+                                    style="width: 100px; text-decoration: none; display: block;">
+                                    </a></li>
+                        </ul>
+                        <!--  <p for="User1" style="width: 100px;">User: </p>
+                    <p style="width: 100px;"></p>-->
+                    </div>
+                    <br><br>
+                    <div>
+                        <ul style="list-style-type: none; ">
+                            <li style="display: inline-block;"><a  for="User1" style="width: auto; text-decoration: none; display: block;
+                                        size: 10rem; height: 23.3; color: #009999;">
+                                    <b id="time"></b></a></li>
+                            <li style="display: inline-block;"><a id = "countdown"
+                                    style="width: 100px; text-decoration: none; display: block;">
+                                    </a></li>
+                        </ul>
+                    </div>
+                    <ul style="list-style-type: none; ">
+                        <li style="display: inline-block;"><a for="User1" style="width: 60px; text-decoration: none; display: block;
+                                    size: 10rem; height: 23.3; color: #009999;">
+                                <b>TỶ SỐ:</b></a></li>
+                        <li style="display: inline-block;"><a id="user_1"
+                                style="width: 10px; text-decoration: none; display: block;">
+                                0</a></li>
+                        <li style="display: inline-block;"><a 
+                                style="width: 1px; text-decoration: none; display: block;">
+                                /</a></li>
+                        <li style="display: inline-block;"><a id="user_2"
+                                style="width: 10px; text-decoration: none; display: block;">
+                                0</a></li>
+                    </ul>
+
+
+                    <!-- <label for="Score">Tỷ số:</label>
+
+                <input type="text" id="txtScore1" name="score1" style="width:30px;height:20px;">
+                <input type="text" id="txtScore2" name="score2" style="width:30px;height:20px;"> -->
+
+                    <div id="choice">
+                        
+                        <input type="radio" name="choice" value="1"><img src="./image/keo.jpg"
+                        style="width:100px;height:100px;">
+                        <input type="radio" name="choice" value="2"><img src="./image/bua.jpg"
+                                style="width:100px;height:100px;">
+                        <input type="radio" name="choice" value="3"><img src="./image/bao.jpg"
+                                style="width:100px;height:100px;">
+                        
+                        
+                    </div>
+
+
+                    <br><br>
+
+                    
+                </li>
+                <li style="display: inline-block;">
+                    <div>
+                        <ul style="list-style-type: none; ">
+                            <li id style="display: inline-block;"><a for="User1" style="width: 80px; text-decoration: none; display: block; margin-top: 0px;
+                                        size: 10rem; height: 23.3; color: #009999;">
+                                    <b id="competitor"> ĐỐI THỦ:</b></a>
+                            </li>
+                            
+                            
+                        </ul>
+                        <br>
+                        <!--  <p for="User1" style="width: 100px;">User: </p>
+                    <p style="width: 100px;"></p>-->
+                    </div>
+                    <br><br>
+                    <!-- <label for="Score">Tỷ số:</label>
+
+                <input type="text" id="txtScore1" name="score1" style="width:30px;height:20px;">
+                <input type="text" id="txtScore2" name="score2" style="width:30px;height:20px;"> -->
+
+                    <div id = "competitor-choice" style="margin-left:130px;">
+                        <img id="competitor-choice-img" 
+                                style="width:100px;height:100px;">
+                    </div>
+                    <br><br>
+                
+                </li>
+            </ul>
+        </div>
+</main>
+<script>
+    // Get the modal
+    var modal = document.getElementById("myModal");
+
+    // Get the button that opens the modal
+    var btn = document.getElementById("myBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks the button, open the modal 
+    btn.onclick = function () {
+        modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    //-------------------------------------------------------------------------------------------------------------
+
+    function myFunction(id) {
+        document.getElementById(id).style = "width:30px;height:30px;";
+    }
+
+</script>
+</body>
+</html>
