@@ -38,7 +38,7 @@ socket.on('join-complete', (jc)=>{
         document.getElementById("competitor").innerHTML="ĐANG ĐỢI ĐỐI THỦ"
     }else {
         document.getElementById("competitor").innerHTML="ĐỐI THỦ"
-        timeleft = 5
+        timeleft = 10
         document.getElementById("time").innerHTML= "BẮT ĐẦU TRONG: "
         var downloadTimer = setInterval(function(){
 
@@ -51,37 +51,44 @@ socket.on('join-complete', (jc)=>{
             timeleft -= 1;
         }, 1000);
 
-        timeleft = 3
-        document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
-        var downloadTimer = setInterval(function(){
+        setTimeout(function(){
+            timeleft = 5
+            document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
+            var downloadTimer = setInterval(function(){
 
-            if(timeleft <= 0){
-            clearInterval(downloadTimer);
-            document.getElementById("countdown").innerHTML = "0";
-            } else {
-            document.getElementById("countdown").innerHTML = timeleft ;
-            }
-            timeleft -= 1;
-        }, 1000);
-        chosen_value = 0
+                if(timeleft <= 0){
+                clearInterval(downloadTimer);
+                document.getElementById("countdown").innerHTML = "0";
+                } else {
+                document.getElementById("countdown").innerHTML = timeleft ;
+                }
+                timeleft -= 1;
+            }, 1000);
+            setTimeout(function(){
+                chosen_value = 0
+                var ele = document.getElementsByName('choice');
+                for(i = 0; i < ele.length; i++) { 
+                    if(ele[i].checked) {
+                        console.log(ele[i].value)
+                        chosen_value = ele[i].value;
+                    }
+                    
+                } 
+                console.log(chosen_value)
+                socket.emit('result', chosen_value)//do what you need here
+            }, 5500)
+        }, 10500)
         
-        var ele = document.getElementsByName('gender');
-        for(i = 0; i < ele.length; i++) { 
-            if(ele[i].checked) {
-                console.log(ele[i].value)
-                chosen_value = ele[i].value;
-            }
-            
-        } 
-
-        socket.emit('result', chosen_value)
+        
+        
+        
     }
     if (jc_global == 0){
         jc_global = jc
     }
 })
 socket.on('update-score', (message)=>{
-    
+    console.log(message)
     if (jc_global == 1){
         choice = message[1].currentchoice
         if (choice == 1){
@@ -92,6 +99,14 @@ socket.on('update-score', (message)=>{
             document.getElementById("competitor-choice-img").src = "./image/bao.jpg"
         } else  {
             document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
+        }
+        if (message[2] == 1){
+            number = document.getElementById("user_2").innerHTML
+            document.getElementById("user_2").innerHTML = parseInt(number) + 1
+        }
+        if (message[2] == -1){
+            number = document.getElementById("user_1").innerHTML
+            document.getElementById("user_1").innerHTML = parseInt(number) + 1
         }
     } else {
         choice = message[0].currentchoice
@@ -104,15 +119,16 @@ socket.on('update-score', (message)=>{
         } else  {
             document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
         }
+        if (message[2] == 1){
+            number = document.getElementById("user_1").innerHTML
+            document.getElementById("user_1").innerHTML = parseInt(number) + 1
+        }
+        if (message[2] == -1){
+            number = document.getElementById("user_2").innerHTML
+            document.getElementById("user_2").innerHTML = parseInt(number) + 1
+        }
     }
-    if (message[2] == 1){
-        number = document.getElementById("user_2").innerHTML
-        document.getElementById("user_2").innerHTML = parseInt(name) +1
-    }
-    if (message[2] == -1){
-        number = document.getElementById("user_1").innerHTML
-        document.getElementById("user_1").innerHTML = parseInt(name) +1
-    }
+    
     timeleft = 10
     document.getElementById("time").innerHTML= "BẮT ĐẦU TRONG: "
     var downloadTimer = setInterval(function(){
@@ -125,31 +141,35 @@ socket.on('update-score', (message)=>{
         }
         timeleft -= 1;
       }, 1000);
+    setTimeout(function(){
+        timeleft = 5
+        document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
+        var downloadTimer = setInterval(function(){
 
-    timeleft = 5
-    document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
-    var downloadTimer = setInterval(function(){
-
-        if(timeleft <= 0){
-            clearInterval(downloadTimer);
-            document.getElementById("countdown").innerHTML = "0";
-        } else {
-            document.getElementById("countdown").innerHTML = timeleft ;
-        }
-        timeleft -= 1;
-    }, 1000);
-    chosen_value = 0
-    
-    var ele = document.getElementsByName('gender');
-    for(i = 0; i < ele.length; i++) { 
-        if(ele[i].checked) {
-            chosen_value = ele[i].value;
-        }
+            if(timeleft <= 0){
+                clearInterval(downloadTimer);
+                document.getElementById("countdown").innerHTML = "0";
+            } else {
+                document.getElementById("countdown").innerHTML = timeleft ;
+            }
+            timeleft -= 1;
+        }, 1000);
+        setTimeout(function(){
+            chosen_value = 0
+            var ele = document.getElementsByName('choice');
+            for(i = 0; i < ele.length; i++) { 
+                if(ele[i].checked) {
+                    chosen_value = ele[i].value;
+                }
+                
+            } 
+            console.log(chosen_value)
+            socket.emit('result', chosen_value)
+        }, 5500)
         
-    } 
-
-    socket.emit('result', chosen_value)
+    }, 10500)
 })
+
 socket.on('end-game', ()=>{
     jc_global = 0;
     socket.emit('get-update-user')
