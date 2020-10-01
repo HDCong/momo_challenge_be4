@@ -10,7 +10,6 @@ async function add_user(user_name, db) {
 			point: Const.INIT_POINT,
 			turn: Const.INIT_TURN
 		};
-		console.log('add user')
 		await dbo.collection(Const.COLLECTION_NAME).insertOne(user, (err, res) => {
 			if (err) throw err;
 			else {
