@@ -39,10 +39,11 @@ io.on('connection', (socket) => {
         console.log(userId)
         let users
         dbController.find_by_id(userId, dbConn).then((result) => {
-            users= result
-        }).catch((err)=> {throw new Error(err)})
-        if(users!=undefined)
+            console.log(result)
+            users = result
             socket.emit('user-details', users)
+
+        }).catch((err) => { throw new Error(err) })
     })
     socket.on('getTop', () => {
         dbController.get_top_users(100, dbConn).then((result) => {
@@ -130,7 +131,7 @@ io.on('connection', (socket) => {
         let competitor = findCompetitorSocket(socket.id, listAttributes)
         room[socket.id]["currentChoice"] = userChosen
         console.log(room)
-        if (competitor!=null && room[competitor]["currentChoice"] != null) {
+        if (competitor != null && room[competitor]["currentChoice"] != null) {
             let result = helper.get_match_result(room[listAttributes[2]]["currentChoice"]
                 , (room[listAttributes[3]]["currentChoice"]))
             if (result < 0) { // A win 
