@@ -5,12 +5,14 @@ const PORT = 8888
 var url = 'mongodb://localhost:27017';
 const e = require('express');
 var mongodb = require('mongodb');
+const { update_loser, update_winner } = require('./db/dbController');
 var MongoClient = mongodb.MongoClient
 var dbController = require('./db/dbController')
 
 var dbConn;
 
 var ListRooms = []
+var mappingSocketAndID = []
 var countIdRoom = 0
 
 // base url to database
@@ -43,10 +45,17 @@ io.on('connection', (socket) => {
         console.log('user emit login: ' + username.toString());
         dbController.add_user(username, dbConn).then((result) => {
             socket.emit('user-details', result)
-            console.log(result)
+            console.log('user login', result["_id"])
+            var userId = result["_id"]
+            let obj = {}
+            obj[userId] = socket.id
+            mappingSocketAndID.push({
+                obj
+            })
         }).catch((err) => {
             throw new Error(err)
         })
+
     })
 
     // when user emit find match
@@ -63,6 +72,9 @@ io.on('connection', (socket) => {
             roomInformation = ListRooms[roomIndex]
             console.log(roomInformation)
             socket.join(roomInformation.roomID)
+
+            var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
+            console.log('user rooms: ', rooms)
             let player2 = {
                 "score": 0,
                 "currentChoice": null,
@@ -75,6 +87,7 @@ io.on('connection', (socket) => {
             console.log('roomid is null')
             socket.join(roomID)
             var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
+            console.log('user rooms: ', rooms)
             let newRoom = {
                 "roomID": rooms[1]
             }
@@ -88,7 +101,7 @@ io.on('connection', (socket) => {
             io.to(roomID).emit('join-complete', '1')
         }
     })
-    
+
     // in game handle
     // user emit chosen, compare and return point for user
     socket.on('result', (userChosen) => {
@@ -100,10 +113,44 @@ io.on('connection', (socket) => {
 
     // when over
     // update point after the match
-    socket.on('end-game', (point) => {
+    socket.on('end-game', () => {
+        var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
+        socket.leave(rooms[1])
+
+        // update point
+        let room = findRoomByRoomID(rooms[1])
+        let listAttr = []
+        if (room != null) {
+            for (attrs in room)
+                listAttr.push(attrs)
+            // compare attribute1 and attribute2
+            var score1 = room[listAttr[1]]["score"]
+            var score2 = room[listAttr[2]]["score"]
+            let idWinner
+            let idLoser
+            if (score1 > score2) {
+                // update for user attribute1
+                idWinner = findIDBySocket(listAttr[1])
+                idLoser = findIDBySocket(listAttr[2])
+            } else if (score1 < score2) {
+                // update for user attribute2
+                idWinner = findIDBySocket(listAttr[2])
+                idLoser = findIDBySocket(listAttr[1])
+            }
+            else{
+                idWinner = findIDBySocket(listAttr[2])
+                idLoser = findIDBySocket(listAttr[1])
+                update_loser(idLoser, dbConn)
+                update_loser(idWinner, dbConn)
+                return
+            }
+            if (idWinner != undefined && idLoser != undefined) {
+                update_loser(idLoser, dbConn)
+                update_winner(idWinner, dbConn)
+            }
+        }
 
     })
-
     // handle when user close connect
     socket.on('disconnect', () => {
         console.log(`User with id ${socket.id} disconnected`)
@@ -116,20 +163,41 @@ function findRoomAvailable() {
     for (let i = 0; i < ListRooms.length; i++) {
         let item = ListRooms[i]
         if (Object.keys(item).length < 3) {
-            console.log('return item')
-            console.log(item);
             idx = i;
             break;
         }
     }
     return idx
 }
+function findRoomByRoomID(roomId) {
+    for (let i = 0; i < ListRooms.length; i++) {
+        let item = ListRooms[i]
+        if (item.roomID == roomId)
+            return item
+    }
+    return null
+}
+
+function findIDBySocket(value) {
+    console.log('loop to find')
+    for (let i = 0; i < mappingSocketAndID.length; i++) {
+        let item = mappingSocketAndID[i]
+        for (attrs in item) {
+            for (at in item[attrs]) {
+                if (item[attrs][at] == value)
+                    return at
+            }
+        }
+    }
+    return null
+
+}
 
 app.get('/', (req, res) => {
     console.log('get request')
     console.log()
     res.json(
-        ListRooms)
+        mappingSocketAndID)
 });
 
 
