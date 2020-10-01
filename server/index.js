@@ -43,8 +43,6 @@ io.on('connection', (socket) => {
         }).catch((err)=> {throw new Error(err)})
         if(users!=undefined)
             socket.emit('user-details', users)
-
-
     })
     socket.on('getTop', () => {
         dbController.get_top_users(100, dbConn).then((result) => {
@@ -152,6 +150,7 @@ io.on('connection', (socket) => {
         }
 
         if (room["round"] == 4) { // end game
+            io.to(rooms[1]).emit('end-game')
             console.log('upate diem so');
             io.of('/').in(rooms[1]).clients((error, socketIds) => {
                 if (error) throw error;
@@ -185,12 +184,9 @@ io.on('connection', (socket) => {
 
             }
             if (idWinner != undefined && idLoser != undefined) {
-                console.log('updated 1')
-
                 update_loser(idLoser, dbConn)
                 update_winner(idWinner, dbConn)
             }
-            socket.emit('end-game')
         }
     })
     socket.on('disconnect', () => {
