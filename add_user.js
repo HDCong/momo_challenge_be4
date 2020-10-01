@@ -1,10 +1,10 @@
 const Const = require('./constants.js');
 
-function add_user(user_name) { // TODO: how to return the _id?
-	const MongoClient = require('mongodb').MongoClient;
+async function add_user(user_name, db) {
+	//const MongoClient = require('mongodb').MongoClient;
 
-	MongoClient.connect(Const.DB_URL, (err, db) => {
-		if (err) throw err;
+	try {
+		//db = await MongoClient.connect(Const.DB_URL);
 
 		const dbo = db.db(Const.DB_NAME);
 		const user = {
@@ -13,11 +13,11 @@ function add_user(user_name) { // TODO: how to return the _id?
 			turn:		Const.INIT_TURN
 		};
 
-		dbo.collection(Const.COLLECTION_NAME).insertOne(user, (err, res) => {
-			if (err) throw err;
-			db.close();
-		});
-	});
+		return (await dbo.collection(Const.COLLECTION_NAME).insertOne(user)).insertedId;
+	}
+	catch (err) {
+		console.log(err);
+	}
 }
 
 module.exports = {
