@@ -38,6 +38,7 @@ socket.on('join-complete', (jc)=>{
         document.getElementById("competitor").innerHTML="ĐANG ĐỢI ĐỐI THỦ"
     }else {
         document.getElementById("competitor").innerHTML="ĐỐI THỦ"
+        document.getElementById("competitor-choice").style.visibility = "visible"
         timeleft = 10
         document.getElementById("time").innerHTML= "BẮT ĐẦU TRONG: "
         var downloadTimer = setInterval(function(){
@@ -90,12 +91,13 @@ socket.on('join-complete', (jc)=>{
 socket.on('update-score', (message)=>{
     console.log(message)
     if (jc_global == 1){
-        choice = message[1].currentchoice
-        if (choice == 1){
+        choice = message[1].currentChoice
+        console.log(choice)
+        if (choice == '1'){
             document.getElementById("competitor-choice-img").src = "./image/keo.jpg"
-        } else if (choice == 2){
+        } else if (choice == '2'){
             document.getElementById("competitor-choice-img").src = "./image/bua.jpg"
-        }else if (choice == 3){
+        }else if (choice == '3'){
             document.getElementById("competitor-choice-img").src = "./image/bao.jpg"
         } else  {
             document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
@@ -109,12 +111,13 @@ socket.on('update-score', (message)=>{
             document.getElementById("user_1").innerHTML = parseInt(number) + 1
         }
     } else {
-        choice = message[0].currentchoice
-        if (choice == 1){
+        choice = message[0].currentChoice
+        console.log(choice)
+        if (choice == '1'){
             document.getElementById("competitor-choice-img").src = "./image/keo.jpg"
-        } else if (choice == 2){
+        } else if (choice == '2'){
             document.getElementById("competitor-choice-img").src = "./image/bua.jpg"
-        }else if (choice == 3){
+        }else if (choice == '3'){
             document.getElementById("competitor-choice-img").src = "./image/bao.jpg"
         } else  {
             document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
