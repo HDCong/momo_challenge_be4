@@ -3,9 +3,13 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 const PORT = 8888
 var url = 'mongodb://localhost:27017';
+const e = require('express');
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient
+var dbController = require('./db/dbController')
+
 var dbConn;
+
 var ListRooms = []
 var countIdRoom = 0
 
@@ -16,23 +20,32 @@ MongoClient.connect(url, function (err, db) {
         console.log('Unable to connect to the mongoDB server. Error:', err);
     } else {
         console.log('Connection established to', url);
-        dbConn = db.db("be4")
+        dbConn = db
     }
 });
 
 io.on('connection', (socket) => {
     console.log(`user with id ${socket.id} connected`);
 
+    console.log('get top 100 ');
+    dbController.get_top_users(100, dbConn).then((result) => {
+        socket.emit('top100', result)
+        console.log('get the result')
+        console.log(result.length)
+    }).catch((err) => {
+        throw new Error(err)
+    })
+    
     // handle when user emit login
     socket.on('login', (username) => {
         // insert to mongodb
-        console.log('user emit login: ' + username.toString());
-
         // after insert emit to client
-
-        // //dummy implement
-        dbConn.collection('users').insertOne({ "name": username }, (err, res) => {
-            socket.emit('userid', 'abcdex')
+        console.log('user emit login: ' + username.toString());
+        dbController.add_user(username, dbConn).then((result) => {
+            socket.emit('user-details', result)
+            console.log(result)
+        }).catch((err) => {
+            throw new Error(err)
         })
     })
 
@@ -73,13 +86,6 @@ io.on('connection', (socket) => {
     socket.on('end-game', (point) => {
 
     })
-
-
-    // return 100 highest user
-    socket.on('getRanking', () => {
-
-    })
-
 
     // handle when user close connect
     socket.on('disconnect', () => {
