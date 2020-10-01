@@ -24,6 +24,8 @@ async function add_user(user_name, db) {
 		console.log(err);
 	}
 }
+const { ObjectID } = require('bson');
+
 async function get_top_users(n, db) {
 	//const MongoClient = require('mongodb').MongoClient;
 
@@ -38,7 +40,20 @@ async function get_top_users(n, db) {
 		console.log(err);
 	}
 }
-const { ObjectID } = require('bson');
+async function find_by_id(user_id, db) {
+	//const MongoClient = require('mongodb').MongoClient;
+
+	try {
+		//db = await MongoClient.connect(Const.DB_URL);
+		const dbo = db.db(Const.DB_NAME);
+		user_id = ObjectID(user_id);
+		
+		return await dbo.collection(Const.COLLECTION_NAME).findOne({"_id":user_id})
+	}
+	catch (err) {
+		console.log(err);
+	}
+}
 
 function update_user(user_id, point, turn, db) {
 	try {
@@ -90,5 +105,6 @@ module.exports = {
 	get_top_users,
 	update_user,
 	update_loser,
-	update_winner
+	update_winner,
+	find_by_id
 };

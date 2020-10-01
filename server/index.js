@@ -34,7 +34,24 @@ io.on('connection', (socket) => {
     }).catch((err) => {
         throw new Error(err)
     })
+    socket.on('get-update-user', () => {
+        let userId = findIDBySocket(socket.id)
+        console.log(userId)
+        let users
+        dbController.find_by_id(userId, dbConn).then((result) => {
+            console.log(result)
+            users = result
+            socket.emit('user-details', users)
 
+        }).catch((err) => { throw new Error(err) })
+    })
+    socket.on('getTop', () => {
+        dbController.get_top_users(100, dbConn).then((result) => {
+            socket.emit('top100', result)
+        }).catch((err) => {
+            throw new Error(err)
+        })
+    })
     // handle when user emit login
     socket.on('login', (username) => {
         // insert to mongodb
@@ -69,7 +86,7 @@ io.on('connection', (socket) => {
             console.log(roomInformation)
             socket.join(roomInformation.roomID)
             socket.join(roomInformation.roomID)
-            console.log('>=0',socket.rooms)
+            console.log('>=0', socket.rooms)
             var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
             console.log('user rooms: ', rooms)
             let player2 = {
@@ -84,7 +101,7 @@ io.on('connection', (socket) => {
             console.log('roomid is null')
             socket.join(roomID)
             socket.join(roomID)
-            console.log('<0',socket.rooms)
+            console.log('<0', socket.rooms)
 
             var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
             console.log('user rooms: ', rooms)
@@ -108,14 +125,14 @@ io.on('connection', (socket) => {
     socket.on('result', (userChosen) => {
         let rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
         let room = findRoomByRoomID(rooms[1])
-        if (room==null ||room["round"] > 3) return
+        if (room == null || room["round"] > 3) return
         console.log('result', userChosen, 'round: ', room["round"]);
         let listAttributes = getListAttributes(room);
         let competitor = findCompetitorSocket(socket.id, listAttributes)
         room[socket.id]["currentChoice"] = userChosen
         console.log(room)
-        if (room[competitor]["currentChoice"] != null) {
-            let result = helper.get_match_result(   room[listAttributes[2]]["currentChoice"]
+        if (competitor != null && room[competitor]["currentChoice"] != null) {
+            let result = helper.get_match_result(room[listAttributes[2]]["currentChoice"]
                 , (room[listAttributes[3]]["currentChoice"]))
             if (result < 0) { // A win 
                 room[listAttributes[2]]["score"] += 3
@@ -125,6 +142,7 @@ io.on('connection', (socket) => {
             let obj = []
             obj.push(room[listAttributes[2]])
             obj.push(room[listAttributes[3]])
+            obj.push(result)
             io.to(room["roomID"]).emit('update-score', obj)
             // socket.emit('update-score', obj)
             room["round"] += 1
@@ -133,8 +151,13 @@ io.on('connection', (socket) => {
         }
 
         if (room["round"] == 4) { // end game
+            io.to(rooms[1]).emit('end-game')
             console.log('upate diem so');
-            socket.leave(rooms[1])
+            io.of('/').in(rooms[1]).clients((error, socketIds) => {
+                if (error) throw error;
+                socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(rooms[1]));
+            });
+
             let listAttr = listAttributes
             // compare attribute1 and attribute2
             var score1 = room[listAttr[2]]["score"]
@@ -159,15 +182,12 @@ io.on('connection', (socket) => {
                 idLoser = findIDBySocket(listAttr[3])
                 update_loser(idLoser, dbConn)
                 update_loser(idWinner, dbConn)
-                return
+
             }
             if (idWinner != undefined && idLoser != undefined) {
-                console.log('updated 1')
-
                 update_loser(idLoser, dbConn)
                 update_winner(idWinner, dbConn)
             }
-            socket.emit('end-game')
         }
     })
     socket.on('disconnect', () => {
@@ -189,7 +209,7 @@ function findRoomAvailable() {
     var idx = -1
     for (let i = 0; i < ListRooms.length; i++) {
         let item = ListRooms[i]
-        if (Object.keys(item).length < 4 && item["round"]<3) {
+        if (Object.keys(item).length < 4 && item["round"] < 3) {
             idx = i;
             break;
         }
