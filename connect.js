@@ -9,11 +9,11 @@ socket.on('connect',function() {
     console.log('Client has connected to the server!');
 });
 
-function show_user_detail(name,point,number,rank){
+function show_user_detail(name,point,number){
     document.getElementById("user_name").innerHTML=name;
     document.getElementById("user_cur_point").innerHTML=point;
     document.getElementById("user_num_of_play").innerHTML=number;
-    document.getElementById("user_rank").innerHTML=rank;
+   
 }
 
 socket.on('user-details', (details)=>{
@@ -21,7 +21,7 @@ socket.on('user-details', (details)=>{
     
     document.getElementById("login").style.display="none";
     document.getElementById("waiting").style.display="block";
-    show_user_detail(details.user_name, details.point, details.turn, "--")
+    show_user_detail(details.user_name, details.point, details.turn)
 })
 
 function sendFindMatch() {
@@ -79,10 +79,6 @@ socket.on('join-complete', (jc)=>{
                 socket.emit('result', chosen_value)//do what you need here
             }, 3500)
         }, 5500)
-        
-        
-        
-        
     }
     if (jc_global == 0){
         jc_global = jc
@@ -100,7 +96,7 @@ socket.on('update-score', (message)=>{
         }else if (choice == '3'){
             document.getElementById("competitor-choice-img").src = "./image/bao.jpg"
         } else  {
-            document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
+            document.getElementById("competitor-choice-img").src = "./image/slow.jpg"
         }
         if (message[2] == 1){
             number = document.getElementById("user_2").innerHTML
