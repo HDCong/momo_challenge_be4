@@ -70,7 +70,7 @@ function update_user(user_id, point, turn, db) {
 		console.log(err);
 	}
 }
-function update_winner(user_id, db) {
+async function update_winner(user_id, db) {
 	try {
 		// db = await MongoClient.connect(Const.DB_URL);
 
@@ -79,13 +79,13 @@ function update_winner(user_id, db) {
 		const query = { _id: user_id };
 		const new_values = { $inc: { point: 3, turn: -1 } };
 
-		dbo.collection(Const.COLLECTION_NAME).updateOne(query, new_values);
+		await dbo.collection(Const.COLLECTION_NAME).updateOne(query, new_values);
 	}
 	catch (err) {
 		console.log(err);
 	}
 }
-function update_loser(user_id, db) {
+async function update_loser(user_id, db) {
 	try {
 		// db = await MongoClient.connect(Const.DB_URL);
 
@@ -94,7 +94,7 @@ function update_loser(user_id, db) {
 		const query = { _id: user_id };
 		const new_values = { $inc: { point: 0, turn: -1 } };
 
-		dbo.collection(Const.COLLECTION_NAME).updateOne(query, new_values);
+		await dbo.collection(Const.COLLECTION_NAME).updateOne(query, new_values);
 	}
 	catch (err) {
 		console.log(err);

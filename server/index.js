@@ -87,7 +87,6 @@ io.on('connection', (socket) => {
                 // if have available room    
                 if (roomIndex >= 0) {
                     // update number of player of room
-
                     roomInformation = ListRooms[roomIndex]
                     console.log(roomInformation)
                     socket.join(roomInformation.roomID)
@@ -125,7 +124,6 @@ io.on('connection', (socket) => {
                     io.to(roomID).emit('join-complete', '1')
                 }
             }
-
         }).catch((err) => { throw new Error(err) })
 
     })
@@ -161,12 +159,7 @@ io.on('connection', (socket) => {
         }
 
         if (room["round"] == 4) { // end game
-            io.to(rooms[1]).emit('end-game')
-            console.log('upate diem so');
-            io.of('/').in(rooms[1]).clients((error, socketIds) => {
-                if (error) throw error;
-                socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(rooms[1]));
-            });
+            console.log('update diem so');
 
             let listAttr = listAttributes
             // compare attribute1 and attribute2
@@ -190,14 +183,24 @@ io.on('connection', (socket) => {
                 console.log('vao 3')
                 idWinner = findIDBySocket(listAttr[2])
                 idLoser = findIDBySocket(listAttr[3])
-                update_loser(idLoser, dbConn)
-                update_loser(idWinner, dbConn)
+                update_loser(idLoser, dbConn).then(
+                update_loser(idWinner, dbConn).then((res)=>{
+                    console.log(res)
+                }))
 
             }
             if (idWinner != undefined && idLoser != undefined) {
-                update_loser(idLoser, dbConn)
-                update_winner(idWinner, dbConn)
+                update_loser(idLoser, dbConn).then(
+                    update_winner(idWinner, dbConn).then((res)=>{
+                        console.log(res);
+                    })
+                )
             }
+            io.to(rooms[1]).emit('end-game')
+            io.of('/').in(rooms[1]).clients((error, socketIds) => {
+                if (error) throw error;
+                socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(rooms[1]));
+            });
         }
     })
     socket.on('disconnect', () => {
