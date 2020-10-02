@@ -166,6 +166,7 @@ socket.on('update-score', (message)=>{
                 }
                 
             } 
+            
             console.log(chosen_value)
             socket.emit('result', chosen_value)
         }, 5500)
