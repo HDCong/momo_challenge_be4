@@ -39,7 +39,7 @@ socket.on('join-complete', (jc)=>{
     }else {
         document.getElementById("competitor").innerHTML="ĐỐI THỦ"
         document.getElementById("competitor-choice").style.visibility = "visible"
-        timeleft = 10
+        timeleft = 5
         document.getElementById("time").innerHTML= "BẮT ĐẦU TRONG: "
         var downloadTimer = setInterval(function(){
 
@@ -53,7 +53,7 @@ socket.on('join-complete', (jc)=>{
         }, 1000);
 
         setTimeout(function(){
-            timeleft = 5
+            timeleft = 3
             document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
             var downloadTimer = setInterval(function(){
 
@@ -77,8 +77,8 @@ socket.on('join-complete', (jc)=>{
                 } 
                 console.log(chosen_value)
                 socket.emit('result', chosen_value)//do what you need here
-            }, 5500)
-        }, 10500)
+            }, 3500)
+        }, 5500)
         
         
         
@@ -120,7 +120,7 @@ socket.on('update-score', (message)=>{
         }else if (choice == '3'){
             document.getElementById("competitor-choice-img").src = "./image/bao.jpg"
         } else  {
-            document.getElementById("competitor-choice").innerHTML = "RA CHẬM"
+            document.getElementById("competitor-choice-img").src = "./image/slow.jpg"
         }
         if (message[2] == 1){
             number = document.getElementById("user_1").innerHTML
@@ -132,7 +132,7 @@ socket.on('update-score', (message)=>{
         }
     }
     
-    timeleft = 10
+    timeleft = 5
     document.getElementById("time").innerHTML= "BẮT ĐẦU TRONG: "
     var downloadTimer = setInterval(function(){
 
@@ -145,7 +145,7 @@ socket.on('update-score', (message)=>{
         timeleft -= 1;
       }, 1000);
     setTimeout(function(){
-        timeleft = 5
+        timeleft = 3
         document.getElementById("time").innerHTML= "THỜI GIAN CÒN LẠI: "
         var downloadTimer = setInterval(function(){
 
@@ -166,12 +166,12 @@ socket.on('update-score', (message)=>{
                 }
                 
             } 
-            
+
             console.log(chosen_value)
             socket.emit('result', chosen_value)
-        }, 5500)
+        }, 3500)
         
-    }, 10500)
+    }, 5500)
 })
 
 socket.on('end-game', ()=>{
