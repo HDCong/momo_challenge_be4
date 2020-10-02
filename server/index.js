@@ -76,48 +76,56 @@ io.on('connection', (socket) => {
     // emit back to client state: 1 (mean to wait) or 0 (mean to play)
     socket.on('find-match', () => {
         // find available room in list room
-        var roomIndex = findRoomAvailable()
+        let userId = findIDBySocket(socket.id)
+        console.log(userId)
+        let users
+        dbController.find_by_id(userId, dbConn).then((result) => {
+            console.log(result)
+            if (result["turn"] > 0) {
+                console.log('is available turn')
+                var roomIndex = findRoomAvailable()
+                // if have available room    
+                if (roomIndex >= 0) {
+                    // update number of player of room
+                    roomInformation = ListRooms[roomIndex]
+                    console.log(roomInformation)
+                    socket.join(roomInformation.roomID)
+                    socket.join(roomInformation.roomID)
+                    console.log('>=0', socket.rooms)
+                    var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
+                    console.log('user rooms: ', rooms)
+                    let player2 = {
+                        "score": 0,
+                        "currentChoice": null,
+                    }
+                    roomInformation[socket.id] = player2
+                    io.to(roomInformation.roomID).emit('join-complete', '2')
+                }
+                else {        // If cannot find any available room
+                    roomID = `room${countIdRoom++}`
+                    console.log('roomid is null')
+                    socket.join(roomID)
+                    socket.join(roomID)
+                    console.log('<0', socket.rooms)
 
-        // if have available room    
-        if (roomIndex >= 0) {
-            // update number of player of room
+                    var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
+                    console.log('user rooms: ', rooms)
+                    let newRoom = {
+                        "roomID": rooms[1],
+                        round: 1,
+                    }
+                    let player1 = {
+                        "score": 0,
+                        "currentChoice": null,
+                    }
+                    newRoom[socket.id] = player1
+                    console.log('new room nek', newRoom)
+                    ListRooms.push(newRoom)
+                    io.to(roomID).emit('join-complete', '1')
+                }
+            }
+        }).catch((err) => { throw new Error(err) })
 
-            roomInformation = ListRooms[roomIndex]
-            console.log(roomInformation)
-            socket.join(roomInformation.roomID)
-            socket.join(roomInformation.roomID)
-            console.log('>=0', socket.rooms)
-            var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
-            console.log('user rooms: ', rooms)
-            let player2 = {
-                "score": 0,
-                "currentChoice": null,
-            }
-            roomInformation[socket.id] = player2
-            io.to(roomInformation.roomID).emit('join-complete', '2')
-        }
-        else {        // If cannot find any available room
-            roomID = `room${countIdRoom++}`
-            console.log('roomid is null')
-            socket.join(roomID)
-            socket.join(roomID)
-            console.log('<0', socket.rooms)
-
-            var rooms = Object.keys(io.sockets.adapter.sids[socket.id]);
-            console.log('user rooms: ', rooms)
-            let newRoom = {
-                "roomID": rooms[1],
-                round: 1,
-            }
-            let player1 = {
-                "score": 0,
-                "currentChoice": null,
-            }
-            newRoom[socket.id] = player1
-            console.log('new room nek', newRoom)
-            ListRooms.push(newRoom)
-            io.to(roomID).emit('join-complete', '1')
-        }
     })
 
     // in game handle
@@ -151,12 +159,7 @@ io.on('connection', (socket) => {
         }
 
         if (room["round"] == 4) { // end game
-            io.to(rooms[1]).emit('end-game')
-            console.log('upate diem so');
-            io.of('/').in(rooms[1]).clients((error, socketIds) => {
-                if (error) throw error;
-                socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(rooms[1]));
-            });
+            console.log('update diem so');
 
             let listAttr = listAttributes
             // compare attribute1 and attribute2
@@ -180,14 +183,24 @@ io.on('connection', (socket) => {
                 console.log('vao 3')
                 idWinner = findIDBySocket(listAttr[2])
                 idLoser = findIDBySocket(listAttr[3])
-                update_loser(idLoser, dbConn)
-                update_loser(idWinner, dbConn)
+                update_loser(idLoser, dbConn).then(
+                update_loser(idWinner, dbConn).then((res)=>{
+                    console.log(res)
+                }))
 
             }
             if (idWinner != undefined && idLoser != undefined) {
-                update_loser(idLoser, dbConn)
-                update_winner(idWinner, dbConn)
+                update_loser(idLoser, dbConn).then(
+                    update_winner(idWinner, dbConn).then((res)=>{
+                        console.log(res);
+                    })
+                )
             }
+            io.to(rooms[1]).emit('end-game')
+            io.of('/').in(rooms[1]).clients((error, socketIds) => {
+                if (error) throw error;
+                socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(rooms[1]));
+            });
         }
     })
     socket.on('disconnect', () => {
